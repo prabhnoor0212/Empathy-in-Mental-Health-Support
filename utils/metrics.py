@@ -24,23 +24,24 @@ class CustomMetrics:
 
     def _spans(self, l):
         st, end = -1,-1
+        indices = []
         for idx, val in enumerate(l):
-            if val==1:
-                if st==-1:
-                    st=idx
-                else:
-                    continue
+            if val==1 and st==-1:
+                st=idx
             elif val==0:
-                if st==-1:
-                    continue
-                else:
+                if st!=-1:
                     end=idx
-        if st==-1 and end==-1:
-            return (st,end)
-        elif st!=-1 and end==-1:
-            return (st, idx)
-        else:
-            return (st, idx)
+                    indices.append((st, end))
+                    st=-1
+                    end=-1
+        # if st==-1 and end==-1:
+        #     return (st,end)
+        if st!=-1:
+            indices.append((st, idx))
+
+        # else:
+        #     return (st, idx)
+        return indices
 
     def _corrected_f1(self, _p, _r):
         if _p == 0 or _r == 0:
@@ -50,38 +51,39 @@ class CustomMetrics:
     def rationale_iou(self, y_true, y_soft, terminate):
         idx=0
         tot_f1 = []
-        spans = []
-        pred_spans = []
         y_pred = np.argmax(y_soft, axis=2)
         
         for y, y_hat, t in zip(y_true, y_pred, terminate):
             y = y[1:t]
             y_hat = y_hat[1:t]
             #print(y.shape, y_hat.shape)
-            spans.append(self._spans(y))
-            pred_spans.append(self._spans(y_hat))
+            spans = self._spans(y)
+            pred_spans=self._spans(y_hat)
 
-            ious = defaultdict(dict)
+            iou_spans = []
             for p in pred_spans:
+                p_start = p[0]
+                p_end = p[1]
+                p_span = set(range(p_start, p_end))
                 iou_max = 0
-                for t in spans:
-                    num = len(set(range(p[0], p[1])) & set(range(t[0], t[1])))
-                    denom = len(set(range(p[0], p[1])) | set(range(t[0], t[1])))
-                    iou = 0 if denom == 0 else num / denom
+                for sp in spans:
+                    sp_start = sp[0]
+                    sp_end = sp[1]
+                    sp_span = set(range(sp[0], sp[1]))
+                    numerator = len(p_span & sp_span)
+                    denominator = len(p_span | sp_span)
+                    iou = 0 if denominator == 0 else numerator/denominator
 
                     if iou > iou_max:
                         iou_max = iou
-                ious[idx][p] = iou_max
+                iou_spans.append(iou_max)
 
-            threshold_tps = dict()
+            iou_spans = sum(np.array(iou_spans)>=0.5)
 
-            for key, values in ious.items():
-                threshold_tps[key] = sum(int(val >= 0.5) for val in values.values())
-
-                micro_r = sum(threshold_tps.values()) / len(spans) if len(spans) > 0 else 0
-                micro_p = sum(threshold_tps.values()) / len(pred_spans) if len(pred_spans) > 0 else 0
-                micro_f1 = self._corrected_f1(micro_r, micro_p)
-                tot_f1.append(micro_f1)
+            recall = iou_spans / len(spans) if len(spans) > 0 else 0
+            precision = iou_spans/ len(pred_spans) if len(pred_spans) > 0 else 0
+            micro_f1 = self._corrected_f1(recall, precision)
+            tot_f1.append(micro_f1)
 
             idx+=1
 
