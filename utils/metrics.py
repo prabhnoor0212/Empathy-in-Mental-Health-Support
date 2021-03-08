@@ -69,7 +69,7 @@ class CustomMetrics:
                 for sp in spans:
                     sp_start = sp[0]
                     sp_end = sp[1]
-                    sp_span = set(range(sp[0], sp[1]))
+                    sp_span = set(range(sp_start, sp_end))
                     numerator = len(p_span & sp_span)
                     denominator = len(p_span | sp_span)
                     iou = 0 if denominator == 0 else numerator/denominator
