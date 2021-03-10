@@ -1,3 +1,10 @@
+import os
+import pandas as pd
+from transformers import RobertaTokenizer, RobertaModel
+from torch.utils.data import DataLoader, TensorDataset, RandomSampler, SequentialSampler
+import torch
+from config import _BATCH_SIZE, _max_tokenizer_len
+
 ### Data load utils
 class DataReaderUtility:
     """This class has utility to directly read the input csv and generate the necessary inputs required for modelling
@@ -18,7 +25,7 @@ class DataReaderUtility:
         else:
             raise FileNotFoundError("No file found at path: %s"%(file_path))
     def _input_mask(self, post_list: list):
-        _tokenizer = self.tokenizer.batch_encode_plus(post_list, add_special_tokens=True,max_length=max_tokenizer_len, pad_to_max_length=True)
+        _tokenizer = self.tokenizer.batch_encode_plus(post_list, add_special_tokens=True,max_length=_max_tokenizer_len, pad_to_max_length=True)
         return torch.tensor(_tokenizer['input_ids']), torch.tensor(_tokenizer['attention_mask'])
 
     def _prepare_input(self, file_path: str, train_flag: bool):
