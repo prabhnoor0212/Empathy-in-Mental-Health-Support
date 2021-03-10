@@ -24,7 +24,8 @@ import torch
 from torch import nn
 from torch.nn import CrossEntropyLoss, MSELoss
 
-from .activations import gelu, gelu_new, swish
+#from .activations import gelu, gelu_new, swish
+import torch.nn.functional as F
 from .configuration_bert import BertConfig
 from .file_utils import add_start_docstrings, add_start_docstrings_to_callable
 from .modeling_utils import PreTrainedModel, prune_linear_layer
@@ -57,6 +58,55 @@ BERT_PRETRAINED_MODEL_ARCHIVE_MAP = {
 	"bert-base-dutch-cased": "https://s3.amazonaws.com/models.huggingface.co/bert/wietsedv/bert-base-dutch-cased/pytorch_model.bin",
 }
 
+
+def swish(x):
+	return x * torch.sigmoid(x)
+
+
+def _gelu_python(x):
+	""" Original Implementation of the gelu activation function in Google Bert repo when initially created.
+		For information: OpenAI GPT's gelu is slightly different (and gives slightly different results):
+		0.5 * x * (1 + torch.tanh(math.sqrt(2 / math.pi) * (x + 0.044715 * torch.pow(x, 3))))
+		This is now written in C in torch.nn.functional
+		Also see https://arxiv.org/abs/1606.08415
+	"""
+	return x * 0.5 * (1.0 + torch.erf(x / math.sqrt(2.0)))
+
+
+def gelu_new(x):
+	""" Implementation of the gelu activation function currently in Google Bert repo (identical to OpenAI GPT).
+		Also see https://arxiv.org/abs/1606.08415
+	"""
+	return 0.5 * x * (1 + torch.tanh(math.sqrt(2 / math.pi) * (x + 0.044715 * torch.pow(x, 3.0))))
+	
+if torch.__version__ < "1.4.0":
+	gelu = _gelu_python
+else:
+	gelu = F.gelu
+	try:
+		import torch_xla  # noqa F401
+
+		logger.warning(
+			"The torch_xla package was detected in the python environment. PyTorch/XLA and JIT is untested,"
+			" no activation function will be traced with JIT."
+		)
+	except ImportError:
+		gelu_new = torch.jit.script(gelu_new)
+
+ACT2FN = {
+	"relu": F.relu,
+	"swish": swish,
+	"gelu": gelu,
+	"tanh": torch.tanh,
+	"gelu_new": gelu_new,
+}
+
+
+def get_activation(activation_string):
+	if activation_string in ACT2FN:
+		return ACT2FN[activation_string]
+	else:
+		raise KeyError("function {} not found in ACT2FN mapping {}".format(activation_string, list(ACT2FN.keys())))
 
 def load_tf_weights_in_bert(model, config, tf_checkpoint_path):
 	""" Load tf checkpoints in a pytorch model.
@@ -1474,3 +1524,28 @@ class BertForQuestionAnswering(BertPreTrainedModel):
 			outputs = (total_loss,) + outputs
 
 		return outputs  # (loss), start_logits, end_logits, (hidden_states), (attentions)
+
+logger = logging.getLogger(__name__)
+
+
+def swish(x):
+	return x * torch.sigmoid(x)
+
+
+def _gelu_python(x):
+	""" Original Implementation of the gelu activation function in Google Bert repo when initially created.
+		For information: OpenAI GPT's gelu is slightly different (and gives slightly different results):
+		0.5 * x * (1 + torch.tanh(math.sqrt(2 / math.pi) * (x + 0.044715 * torch.pow(x, 3))))
+		This is now written in C in torch.nn.functional
+		Also see https://arxiv.org/abs/1606.08415
+	"""
+	return x * 0.5 * (1.0 + torch.erf(x / math.sqrt(2.0)))
+
+
+def gelu_new(x):
+	""" Implementation of the gelu activation function currently in Google Bert repo (identical to OpenAI GPT).
+		Also see https://arxiv.org/abs/1606.08415
+	"""
+	return 0.5 * x * (1 + torch.tanh(math.sqrt(2 / math.pi) * (x + 0.044715 * torch.pow(x, 3.0))))
+
+

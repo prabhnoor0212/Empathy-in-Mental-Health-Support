@@ -4,6 +4,8 @@ from transformers import RobertaTokenizer, RobertaModel
 from torch.utils.data import DataLoader, TensorDataset, RandomSampler, SequentialSampler
 import torch
 from config import _BATCH_SIZE, _max_tokenizer_len
+from config import data_path, frac_train, frac_test, frac_val
+from src.data_utils.data_splitter import train_val_test
 
 ### Data load utils
 class DataReaderUtility:
@@ -70,3 +72,16 @@ class DataReaderUtility:
             data_loader_test = None
 
         return data_loader_train, data_loader_val, data_loader_test
+
+    def prepare_inputs(self):
+        df = pd.read_csv(data_path)
+        df_train, df_val, df_test =  train_val_test(df, stratify_colname='level', frac_train=frac_train, frac_val=frac_val, frac_test=frac_test)
+        if os.path.isdir('datasets'):
+            df_train.to_csv( "datasets/train.csv", index=False)
+            df_val.to_csv("datasets/val.csv", index=False)
+            df_test.to_csv("datasets/test.csv", index=False)
+        else:
+            raise FileNotFoundError("Need to add datasets Folder!")
+
+        train, val, test = self.data_loader(train_file_path="datasets/train.csv", val_file_path="datasets/val.csv", test_file_path="datasets/test.csv")
+        return train, val, test

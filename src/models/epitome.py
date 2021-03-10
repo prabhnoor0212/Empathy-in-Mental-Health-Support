@@ -4,10 +4,13 @@ import math
 import torch
 import torch.nn.functional as F
 
-from pre_trained_modeling.modeling_bert import BertEmbeddings, BertLayerNorm, BertModel, BertPreTrainedModel
-from pre_trained_modeling.configuration_roberta import RobertaConfig
-from pre_trained_modeling.roberta import RobertaForTokenClassification, RobertaModel
+from src.models.attention import SelfAttention
 
+from src.pre_trained_modeling.modeling_bert import BertLayerNorm, BertPreTrainedModel
+from src.pre_trained_modeling.configuration_roberta import RobertaConfig
+from src.pre_trained_modeling.roberta import RobertaModel
+
+from config import _attn_concat_type, _attn_type, _synthesizer_type, _dropout
 
 ROBERTA_PRETRAINED_MODEL_ARCHIVE_MAP = {
 	"roberta-base": "https://s3.amazonaws.com/models.huggingface.co/bert/roberta-base-pytorch_model.bin",
@@ -52,3 +55,89 @@ class EmpathyClassification(nn.Module):
         out = self.prediction_layer(self.drop_layer(out))
         return out
 
+class EPITOME(nn.Module):
+    
+    def __init__(self):
+        super(EPITOME, self).__init__()
+
+        
+
+        ###attention
+        self.self_attention = SelfAttention()
+
+        ###predictors
+        self.empathy_classification = EmpathyClassification()
+        self.rationale_classification = nn.Linear(768,2) ##emb size and binary class at token level
+
+        ###droupout
+        self.drop_layer = nn.Dropout(_dropout)
+
+        self.apply(self._init_weights)
+
+        ###encoders
+        self.seeker_encoder = Encoder.from_pretrained("roberta-base",output_attentions = False,output_hidden_states = False)
+        self.responder_encoder = Encoder.from_pretrained("roberta-base",output_attentions = False,output_hidden_states = False)
+        
+
+        if _synthesizer_type is not None and _synthesizer_type=='dense':
+            ##stretch
+            pass
+    
+    def _init_weights(self, module):
+        """ Initialize the weights """
+        if isinstance(module, (nn.Linear, nn.Embedding)):
+            initializer_range=0.02
+            module.weight.data.normal_(mean=0.0, std=initializer_range)
+        elif isinstance(module, BertLayerNorm):
+        	module.bias.data.zero_()
+        	module.weight.data.fill_(1.0)
+        if isinstance(module, nn.Linear) and module.bias is not None:
+            module.bias.data.zero_()
+
+    def forward(self, seeker_input, seeker_attn_mask, responder_input, responder_attn_mask, class_label, rationale, len_rationale,lambda_EI,lambda_RE):
+        #seeker_input = seeker.to(long)
+        seeker_token_embs = self.seeker_encoder.roberta(seeker_input,seeker_attn_mask)[0]
+        response_all_layers = self.responder_encoder.roberta(responder_input,responder_attn_mask)
+        response_token_embs = response_all_layers[0]
+
+        # seeker_token_embs = self.seeker(seeker_input,seeker_attn_mask)[0]
+        # response_all_layers = self.responder(responder_input,responder_attn_mask)
+        # response_token_embs = response_all_layers[0]
+        context_token_embs = self.drop_layer(self.self_attention(response_token_embs,seeker_token_embs,seeker_token_embs))
+        if _synthesizer_type is not None and _synthesizer_type=='dense':
+            ### stretch goal
+            pass
+        else:
+            if _attn_concat_type == 'simple':
+                response_context_embs = response_token_embs+context_token_embs
+            else:
+                raise Exception("Invalid Context type")
+
+        logits_empathy = self.empathy_classification(response_context_embs[:, 0, :])
+        logits_rationales = self.rationale_classification(self.drop_layer(response_context_embs))
+        
+        outputs = (logits_empathy,logits_rationales) + response_all_layers[2:]##this is response attn
+        
+        
+        loss_rationales, loss_empathy = 0,0
+        
+        if rationale is not None:
+            loss_fct = CrossEntropyLoss()
+            # Only keep active parts of the loss
+            if responder_attn_mask is not None:
+                active_loss = responder_attn_mask.view(-1) == 1
+                active_logits = logits_rationales.view(-1, 2)
+                active_labels = torch.where(active_loss, rationale.view(-1), torch.tensor(loss_fct.ignore_index).type_as(rationale))
+                loss_rationales = loss_fct(active_logits, active_labels)
+            else:
+                loss_rationales = loss_fct(logits_rationales.view(-1, 2), rationale.view(-1))
+
+        if class_label is not None:
+            loss_fct = CrossEntropyLoss()
+            loss_empathy = loss_fct(logits_empathy.view(-1, 3), class_label.view(-1))
+            loss = lambda_EI * loss_empathy + lambda_RE * loss_rationales
+        else:
+            print("None label")
+
+        outputs = (loss, loss_empathy, loss_rationales) + outputs
+        return outputs
