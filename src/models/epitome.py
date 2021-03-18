@@ -10,7 +10,7 @@ from src.pre_trained_modeling.modeling_bert import BertLayerNorm, BertPreTrained
 from src.pre_trained_modeling.configuration_roberta import RobertaConfig
 from src.pre_trained_modeling.roberta import RobertaModel
 
-from config import _attn_concat_type, _attn_type, _synthesizer_type, _dropout
+from config import _attn_concat_type, _attn_type, _synthesizer_type, _dropout, _attn_dropout, _num_head
 
 ROBERTA_PRETRAINED_MODEL_ARCHIVE_MAP = {
 	"roberta-base": "https://s3.amazonaws.com/models.huggingface.co/bert/roberta-base-pytorch_model.bin",
@@ -63,7 +63,7 @@ class EPITOME(nn.Module):
         
 
         ###attention
-        self.self_attention = SelfAttention()
+        self.self_attention = SelfAttention(heads = _num_head, attn_dropout=_attn_dropout)
 
         ###predictors
         self.empathy_classification = EmpathyClassification()
