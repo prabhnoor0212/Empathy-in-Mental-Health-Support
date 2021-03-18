@@ -22,6 +22,10 @@ _EPOCHS = 4                       #default = 4
 _LAMBDA_EI=1                      #default = 1
 _LAMBDA_RE=0.5                    #default = 0.5
 
+## Multi-Head Attention
+_num_head = 1                     #default = 1
+_attn_dropout = 0.1               #default = 0.1
+
 ## Synthesizer (stretch goal) config
 _attn_type='add'  
 _attn_concat_type = 'simple'
