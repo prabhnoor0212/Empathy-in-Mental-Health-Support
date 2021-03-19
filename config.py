@@ -3,7 +3,7 @@
 ## config.py
 
 #data configs
-data_path = "datasets/emotional-reactions-reddit_model.csv" ## change this file to different datasets
+data_path = "datasets/emotional-reactions-reddit.csv" ## change this file to different datasets
 train_path =  "dataset/train.csv"  #change this variable to run for custom train file
 val_path="dataset/val.csv"         #if None: don't perform validation
 test_path="dataset/test.csv"       #if None: don't use test set
