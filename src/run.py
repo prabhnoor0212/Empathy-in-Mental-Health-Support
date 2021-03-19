@@ -8,7 +8,7 @@ from transformers import  AdamW
 from src.utils.trainer import trainer, no_grad_run
 
 import random
-from config import _SEED_VAL, _LR, _EPS
+from config import _SEED_VAL, _LR, _EPS, data_path
 from tqdm import tqdm
 random.seed(_SEED_VAL)
 np.random.seed(_SEED_VAL)
@@ -21,7 +21,13 @@ if __name__=="__main__":
     else:
         logging.info('No GPU! Sad Day!')
         device = torch.device("cpu")
-    train, val, test = DataReaderUtility().prepare_inputs()
+
+
+    out_path = data_path.split("/")
+    out_path[-1] = out_path[-1].split(".csv")[0]+"_model.csv"
+    out_path = "/".join(out_path)
+    DataReaderUtility().prepare_model_csv(data_path, out_path)
+    train, val, test = DataReaderUtility().prepare_inputs(data_path=out_path)
     logging.info("Train, Test and Validation sets created")
     logging.info("Loading EPITOME MODEL")
     model = EPITOME()

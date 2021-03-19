@@ -97,8 +97,7 @@ class EPITOME(nn.Module):
     def forward(self, seeker_input, seeker_attn_mask, responder_input, responder_attn_mask, class_label, rationale, len_rationale,lambda_EI,lambda_RE):
         #seeker_input = seeker.to(long)
         seeker_token_embs = self.seeker_encoder.roberta(seeker_input,seeker_attn_mask)[0]
-        response_all_layers = self.responder_encoder.roberta(responder_input,responder_attn_mask)
-        response_token_embs = response_all_layers[0]
+        response_token_embs = self.responder_encoder.roberta(responder_input,responder_attn_mask)[0]
 
         # seeker_token_embs = self.seeker(seeker_input,seeker_attn_mask)[0]
         # response_all_layers = self.responder(responder_input,responder_attn_mask)
@@ -114,9 +113,9 @@ class EPITOME(nn.Module):
                 raise Exception("Invalid Context type")
 
         logits_empathy = self.empathy_classification(response_context_embs[:, 0, :])
-        logits_rationales = self.rationale_classification(self.drop_layer(response_context_embs))
+        logits_rationales = self.rationale_classification(response_context_embs)
         
-        outputs = (logits_empathy,logits_rationales) + response_all_layers[2:]##this is response attn
+        outputs = (logits_empathy,logits_rationales)
         
         
         loss_rationales, loss_empathy = 0,0

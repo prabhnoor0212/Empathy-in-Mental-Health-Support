@@ -43,10 +43,10 @@ class CustomMetrics:
         #     return (st, idx)
         return indices
 
-    def _corrected_f1(self, _p, _r):
-        if _p == 0 or _r == 0:
+    def _corrected_f1(self, _precision, _recall):
+        if _precision == 0 or _recall == 0:
             return 0
-        return 2 * _p * _r / (_p + _r)
+        return (2*_precision*_recall)/(_precision + _recall)
 
     def rationale_iou(self, y_true, y_soft, terminate):
         idx=0
