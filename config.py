@@ -32,5 +32,11 @@ _attn_concat_type = 'simple'
 
 
 _synthesizer_type = None # default = 'dense' | options = 'dense' or None
+_synth_weight = 0.3 # default 0.3 | only active if synth_type is not None
+
+
+_talking_heads = True          # default False
+_n_taling_heads = 12           # default 12 | only active if _talking_heads is True
+_talking_weight = 0.4          # default 0.3 | only active if _talking_heads is True
 
 
