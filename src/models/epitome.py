@@ -4,13 +4,13 @@ import math
 import torch
 import torch.nn.functional as F
 
-from src.models.attention import SelfAttention
+from src.models.attention import SelfAttention, DenseSynthesizer, TalkingHeadsAttention
 
 from src.pre_trained_modeling.modeling_bert import BertLayerNorm, BertPreTrainedModel
 from src.pre_trained_modeling.configuration_roberta import RobertaConfig
 from src.pre_trained_modeling.roberta import RobertaModel
 
-from config import _attn_concat_type, _attn_type, _synthesizer_type, _dropout, _attn_dropout, _num_head
+from config import _attn_concat_type, _attn_type, _synthesizer_type, _dropout, _attn_dropout, _num_head, _n_taling_heads, _talking_heads, _talking_weight,_synth_weight, _synthesizer_type
 
 ROBERTA_PRETRAINED_MODEL_ARCHIVE_MAP = {
 	"roberta-base": "https://s3.amazonaws.com/models.huggingface.co/bert/roberta-base-pytorch_model.bin",
@@ -80,8 +80,10 @@ class EPITOME(nn.Module):
         
 
         if _synthesizer_type is not None and _synthesizer_type=='dense':
-            ##stretch
-            pass
+            self.synthesizer = DenseSynthesizer()
+        
+        if _talking_heads is not None:
+            self.talking_attention = TalkingHeadsAttention(heads=_n_taling_heads)
     
     def _init_weights(self, module):
         """ Initialize the weights """
@@ -103,9 +105,17 @@ class EPITOME(nn.Module):
         # response_all_layers = self.responder(responder_input,responder_attn_mask)
         # response_token_embs = response_all_layers[0]
         context_token_embs = self.drop_layer(self.self_attention(response_token_embs,seeker_token_embs,seeker_token_embs))
+
+        if _talking_heads:
+            talking_embs = self.talking_attention(response_token_embs,seeker_token_embs,seeker_token_embs)
+            context_token_embs = (1-_talking_weight)*context_token_embs + _talking_weight*talking_embs
+
         if _synthesizer_type is not None and _synthesizer_type=='dense':
-            ### stretch goal
-            pass
+            synthesizer_context_token_embs = self.drop_layer(self.synthesizer(response_token_embs,seeker_token_embs))
+            if _attn_concat_type == 'simple':
+                response_context_embs = response_token_embs+(1-_synth_weight )*context_token_embs+_synth_weight *synthesizer_context_token_embs
+            else:
+                raise Exception("Invalid Context type")
         else:
             if _attn_concat_type == 'simple':
                 response_context_embs = response_token_embs+context_token_embs
