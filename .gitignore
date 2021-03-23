@@ -3,3 +3,4 @@ datasets/test.csv
 datasets/train.csv
 datasets/val.csv
 datasets/*_model.csv
+TEST/data/*
