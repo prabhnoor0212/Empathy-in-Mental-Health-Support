@@ -6,6 +6,9 @@ import logging
 logging.getLogger().setLevel(logging.INFO)
 from transformers import  AdamW
 from src.utils.trainer import trainer, no_grad_run
+import argparse
+parser = argparse.ArgumentParser("pathVars")
+parser.add_argument("--model_write_path", default="output/out.pth", type=str, help="path where model will be written")
 
 import random
 from config import _SEED_VAL, _LR, _EPS, data_path
@@ -22,7 +25,7 @@ if __name__=="__main__":
         logging.info('No GPU! Sad Day!')
         device = torch.device("cpu")
 
-
+    args = parser.parse_args()
     out_path = data_path.split("/")
     out_path[-1] = out_path[-1].split(".csv")[0]+"_model.csv"
     out_path = "/".join(out_path)
@@ -47,9 +50,15 @@ if __name__=="__main__":
     model = trainer(data=train, data_val=val, optimizer=optimizer, model=model, device=device)
     logging.info("Training and Validation Completed!")
 
+    if args.model_write_path:
+        torch.save(model.state_dict(), args.model_write_path)
+        logging.info("Model Saved!")
+
     ### Testing
     logging.info("Test set evaluation started!")
     no_grad_run(model=model, data=test, task = 'test', device=device)
     logging.info("Test set evaluation completed!")
 
-    print("DONE!!!")
+    
+
+    logging.info("DONE!!!")
