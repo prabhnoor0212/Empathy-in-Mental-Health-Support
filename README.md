@@ -2,19 +2,17 @@
 
 This repository is my attempt to reproduce the major results of the paper: [A Computational Approach to Understanding Empathy Expressed in Text-Based Mental Health Support](https://arxiv.org/pdf/2009.08441v1.pdf). 
 
->📋  Objective
+## Objective
 
-The scope of this repository is limited to the following architecture and tasks proposed in the paper:
+>📋 The scope of this repository is limited to reproducing results from the bi-encoder model architecture proposed in the paper.
 
-Modelling Task:
-We have text conversations between seeker (any person who is seeking help with mental health on online platforms such as Reddit) and responder (any person who is volunteering to help a seeker). The goal of this work is to identify empathy in resonse of the responder towards the seeker. The framework of empathic conversations contains three empathy communication mechanisms – Emotional Reactions, Interpretations, and Explorations. For EACH OF THE 3 FRAMEWORKS, the machine learning task is 2 folds:
+The comparison of results obtained from my implementation is done with:
 
-1) Given a text from seeker, "Identify/Classify" the text response of a responder into 3 levels of communication (No Communication/ Weak Communication/ Strong Communication). 
-2) And, extract the rationale, i.e. words from the text that can offer reasonaing behind making the above classification.
+  • the scores reported in the paper.
+  
+  • the scores obtained by re-running the authors’ implementation on the public dataset (a subset of the original dataset used in the paper).
 
-NOTE: These 2 tasks need to be performed for all the 3 frameworks of empathy: Emotional Reactions, Interpretations, and Explorations.
 
-This repository provides the implementation for the architecture proposed in the paper for the above mentioned tasks. The code to reproduce the results (classification as well as extraction for 3 said frameworks) as reported by the authors in the paper is also provided. Further, some additional techniques and architectural variations to the authors' work along with results are also provided.
 
 ## Requirements
 
@@ -32,7 +30,7 @@ pip3 install -r requirements.txt
 python3 src/run.py --model_write_path="output/out.pth"
 ```
 
-NOTE: All default values of hyperparameters and read/write path information as well as brief description is given in config.py file. Please change the dataset path "data_path" depending on the empathy framework dataset and also change the hyper-parameters if needed.
+NOTE: All default values of hyperparameters and read/write path information as well as a brief description are given in the config.py file. Please change the dataset path "data_path" depending on the empathy framework dataset and also change the hyper-parameters if needed.
 
 ## Training
 
@@ -52,27 +50,19 @@ To evaluate results for a trained model, run this command:
 python3 src/eval.py --model_path="output/out.pth"
 ```
 
->📋  Make sure the trained model weights are present at specified path. Please change the dataset path "data_path" depending on the empathy framework dataset.
-
-## Pre-trained Models
-
-You can download pretrained models for the basic implementation:
-
-- [My awesome model](https://drive.google.com/mymodel.pth) trained on ImageNet using parameters x,y,z. 
-
-If you want to have a look at the running/testing of all the results, please refer to the [evaluation notebook]().
+>📋  Make sure the trained model weights are present at the specified path. Please change the dataset path "data_path" depending on the empathy framework dataset.
 
 
 ## Results
 
 The results are as follows:
 
-<img src="https://user-images.githubusercontent.com/43536129/114054591-a03c4280-98ad-11eb-908f-881e4a215e40.jpg">
+<img src="https://user-images.githubusercontent.com/43536129/115950516-45375c00-a4f9-11eb-9659-2d51cec0abb6.jpg">
 
 
 >📋  Model information
 
-1. "Reported(all data)": Reported in paper (trained on a slightly larger dataset)
+1. "Reported(all data)": Reported in the paper (trained on a slightly larger dataset)
 2. "Author Run": Results by running author's code (only on the public dataset)
 3. "Simple": My implementation Results (only on the public dataset)
 4. "Multi-Head": (Stretch Goal) Results with [multi-head attention](https://arxiv.org/pdf/1706.03762.pdf)
@@ -81,9 +71,43 @@ The results are as follows:
 7. "ALL": (Stretch Goal) Multi-Head + Dense-Synthesizer + Talking Heads
 
 
-If you want to have a look at the running/testing of all the results, please refer to the [evaluation notebook]().
+If you want to have a look at the running/evaluations of all the results, please refer to the [evaluation notebook](https://github.com/prabhnoor0212/Empathy-in-Mental-Health-Support/blob/main/Experiments/Empathy_experiments.ipynb).
+
+## Model Weights & Parameter Configurations files
+
+>📋  As there are 3 mechanisms for the framework of empathy, each link below has 3 config files and 3 corresponding model weights (one for each: Explorations, Emotion Reactions, and Interpretations).
+
+- "Simple": My implementation Results
+    - Model Weights & Configs: https://drive.google.com/drive/folders/1vkF3U0DqXSurTnPflWoNEQjwJGPLA6hE?usp=sharing
+
+- "Multi-Head": (Stretch Goal)
+    - Model Weights & Configs: https://drive.google.com/drive/folders/1-2_qGujJnAcN2KFfNf8dc5hfds07uanV?usp=sharing
+
+- "Dense-Synthesizer": (Stretch Goal)
+    - Model Weights & Configs: https://drive.google.com/drive/folders/1-2_qGujJnAcN2KFfNf8dc5hfds07uanV?usp=sharing
+
+- "Talking Heads": (Stretch Goal)
+    - Model Weights & Configs: https://drive.google.com/drive/folders/1-9GAU2fNl2aqXkLOPLWDMwawx-9M5TEg?usp=sharing
+
+- "ALL": (Stretch Goal) Multi-Head + Dense-Synthesizer + Talking Heads
+    - Model Weights & Configs: https://drive.google.com/drive/folders/1-AsdMiXCD4F41cDLboBme0L89WfoRsuV?usp=sharing
+
+
+## Code Organization Overview
+
+- "Experiments": This directory has the notebook for evaluation of results.
+- "TEST": This directory has the code for unit tests.
+- "datasets": This directory has all the necessary data files. (Also one example of the processed file is also provided).
+- "src": This directory has all the code for the reproducibility project. The sub-directories are:
+    - "data_utils": This has the code for data loaders and pre-processors.
+    - "models": This has code for all architecture and model building.
+    - "pre_trained_modeling": This has all the code necessary for initializing the ROBERTA model used in the final architecture. All the code that has been re-used is given in        this directory
+    - "utils": This has the evaluation and training utilities.
+    - "eval.py": Code for evaluation (to be used only after a model is trained).
+    - "train.py": Code for training the model.
+    - "run.py": Code for training and Evaluation in one go.
 
 
 ## Contributing
 
->📋  Pick a licence and describe how to contribute to your code repository. 
+>📋  MIT LICENSE
