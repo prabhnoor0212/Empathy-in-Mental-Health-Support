@@ -84,7 +84,7 @@ If you want to have a look at the running/evaluations of all the results, please
     - Model Weights & Configs: https://drive.google.com/drive/folders/1-2_qGujJnAcN2KFfNf8dc5hfds07uanV?usp=sharing
 
 - "Dense-Synthesizer": (Stretch Goal)
-    - Model Weights & Configs: https://drive.google.com/drive/folders/1-2_qGujJnAcN2KFfNf8dc5hfds07uanV?usp=sharing
+    - Model Weights & Configs: https://drive.google.com/drive/folders/1-7bQD1inyi-hzi7n5Gu9VWbWI7tLAZHo?usp=sharing
 
 - "Talking Heads": (Stretch Goal)
     - Model Weights & Configs: https://drive.google.com/drive/folders/1-9GAU2fNl2aqXkLOPLWDMwawx-9M5TEg?usp=sharing
