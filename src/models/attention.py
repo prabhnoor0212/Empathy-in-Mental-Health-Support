@@ -10,6 +10,8 @@ from config import _max_tokenizer_len
 #    Dense Synthesizer      #
 #############################
 class DenseSynthesizer(nn.Module):
+    """ Class for Dense Syntehsizer implementation
+    """
     def __init__(self, embeddings_size=768, n_tokens=_max_tokenizer_len, syn_dropout=0.1):
         super(DenseSynthesizer, self).__init__()
         self.embeddings_size = embeddings_size
@@ -39,6 +41,8 @@ class DenseSynthesizer(nn.Module):
 # MULTI HEAD SELF ATTENTION #
 #############################
 class SelfAttention(nn.Module):
+    """Class for Multi-Head Attention
+    """
     def __init__(self, embeddings_size=768, heads=1, attn_dropout=0.1):
         super(SelfAttention, self).__init__()
 
@@ -81,6 +85,8 @@ class SelfAttention(nn.Module):
 #############################
 
 class TalkingHeadsAttention(nn.Module):
+    """Class for multi-head attention
+    """
     def __init__(self, embeddings_size=768, heads=12, attn_dropout=0.1):
         super(TalkingHeadsAttention, self).__init__()
 

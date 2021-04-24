@@ -6,6 +6,19 @@ from tqdm import tqdm
 from src.utils.metrics import CustomMetrics
 
 def trainer(data, data_val=None, optimizer=None, model=None, device=None):
+    """Training Utility (capable for evaluating results on train and validation set as well)
+
+    Args:
+        data (DataLoader): [PyTorch Train DataLoader object]
+        data_val ([DataLoader], optional): [PyTorch Validation DataLoader object]. Defaults to None.
+        optimizer: [Optimizer of choice]. Defaults to None.
+        model: [Initialized model]. Defaults to None.
+        device: Defaults to None.
+
+    Returns:
+        trained model
+    """
+
     scheduler = get_linear_schedule_with_warmup(optimizer,num_warmup_steps = 0,num_training_steps = len(data)*_EPOCHS)
     for _iter in range(_EPOCHS):
         pbar = tqdm(total=len(data), desc=f"training")
@@ -53,6 +66,14 @@ def trainer(data, data_val=None, optimizer=None, model=None, device=None):
 
 
 def no_grad_run(model, data, task = None, device=None):
+    """Code for evaluating the model on test set
+
+    Args:
+        model
+        data (DataLoader): [Test PyTorch DataLoader]
+        task ([str], optional): [Name of task such as val/test/etc.]. Defaults to None.
+        device
+    """
     if task:
         print("Started :%s"%(task))
         model.eval()

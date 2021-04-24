@@ -21,6 +21,7 @@ ROBERTA_PRETRAINED_MODEL_ARCHIVE_MAP = {
 	"roberta-large-openai-detector": "https://s3.amazonaws.com/models.huggingface.co/bert/roberta-large-openai-detector-pytorch_model.bin",
 }
 
+## Mapping of feature names to index in the dataloaders
 input_index_map = {
     's_ip_ids':0,
     's_attn_mask':1,
@@ -32,6 +33,9 @@ input_index_map = {
 }
 
 class Encoder(BertPreTrainedModel):
+    """Class for Seeker/Response Encoder from Pre-trained ROBERTA model
+    """
+
 	config_class = RobertaConfig
 	pretrained_model_archive_map = ROBERTA_PRETRAINED_MODEL_ARCHIVE_MAP
 	base_model_prefix = "roberta"
@@ -43,6 +47,9 @@ class Encoder(BertPreTrainedModel):
 
 
 class EmpathyClassification(nn.Module):
+    """Class for linear layers, output layers for empathy classification/identification
+    """
+
     def __init__(self, embeddings_size=768, op_labels=3, empathy_dropout=0.1):
         super(EmpathyClassification, self).__init__()
 
@@ -56,6 +63,8 @@ class EmpathyClassification(nn.Module):
         return out
 
 class EPITOME(nn.Module):
+    """Class for the bi-encoder Roberta based multi-task model architecture
+    """
     
     def __init__(self):
         super(EPITOME, self).__init__()
@@ -101,9 +110,7 @@ class EPITOME(nn.Module):
         seeker_token_embs = self.seeker_encoder.roberta(seeker_input,seeker_attn_mask)[0]
         response_token_embs = self.responder_encoder.roberta(responder_input,responder_attn_mask)[0]
 
-        # seeker_token_embs = self.seeker(seeker_input,seeker_attn_mask)[0]
-        # response_all_layers = self.responder(responder_input,responder_attn_mask)
-        # response_token_embs = response_all_layers[0]
+        # seeker context aware response representation
         context_token_embs = self.drop_layer(self.self_attention(response_token_embs,seeker_token_embs,seeker_token_embs))
 
         if _talking_heads:

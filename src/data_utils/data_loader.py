@@ -57,6 +57,16 @@ class DataReaderUtility:
         return inputs
     
     def data_loader(self, train_file_path, val_file_path=None, test_file_path=None):
+        """Function for craeting Data Loaders from processed_file path
+
+        Args:
+            train_file_path (str): [Path for processed training file]
+            val_file_path (str, optional): [Path for processed validation file]. Defaults to None.
+            test_file_path (str, optional): [Path for processed testing file]. Defaults to None.
+
+        Returns:
+            ataLoader: train data loader, validation data loader, test data loader
+        """
         if train_file_path:
             data_train = TensorDataset(*self._prepare_input(train_file_path, train_flag=True))
             data_loader_train = DataLoader(data_train, sampler = RandomSampler(data_train), batch_size = _BATCH_SIZE)

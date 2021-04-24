@@ -16,6 +16,8 @@ else:
     device = torch.device("cpu")
 
 class Test_Suite(unittest.TestCase):
+    """Class for unit test
+    """
     @classmethod
     def setUpClass(cls):
         file_paths = ["datasets/emotional-reactions-reddit.csv", "datasets/explorations-reddit.csv", "datasets/interpretations-reddit.csv"]
@@ -41,11 +43,15 @@ class Test_Suite(unittest.TestCase):
         cls.optimizer = AdamW(cls.model.parameters(),lr = _LR, eps = _EPS)
     
     def test_data_loading(self):
+        """Test for data splits check
+        """
         self.assertEqual(len(Test_Suite.data), 3)
         for empathy_data in Test_Suite.data:
             self.assertEqual(len(empathy_data), 3)
     
     def test_dimemsions(self):
+        """Test for checking the dimensions of the pre-processed files.
+        """
         original_data = []
         for file_path in Test_Suite.out_paths:
             original_data.append(pd.read_csv(file_path))
@@ -64,6 +70,8 @@ class Test_Suite(unittest.TestCase):
             self.assertEqual(N, original_data[idx].shape[0])
 
     def test_dtype_sanity(self):
+        """Test for data types of the processed files.
+        """
         for empathy_data in Test_Suite.data:
             for split in empathy_data:
                 for row in split.dataset:
@@ -84,7 +92,8 @@ class Test_Suite(unittest.TestCase):
 
 
     def test_training(self):
-
+        """Test for checking the training. (Basically, checks if the model weights are getting updated after first iteration)
+        """
         Test_Suite.model.train()
         Test_Suite.model.zero_grad()
         row = Test_Suite.data[0][0].dataset[0:1]
