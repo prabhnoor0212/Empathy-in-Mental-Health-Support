@@ -1,6 +1,6 @@
 # A Computational Approach to Understanding Empathy Expressed in Text-Based Mental Health Support
 
-This repository is my attempt to reproduce the major results of the paper: [A Computational Approach to Understanding Empathy Expressed in Text-Based Mental Health Support](https://arxiv.org/pdf/2009.08441v1.pdf). 
+This repository is my attempt to reproduce the major results of the paper: [A Computational Approach to Understanding Empathy Expressed in Text-Based Mental Health Support](https://arxiv.org/pdf/2009.08441v1.pdf) and trying to improve them. 
 
 ## Objective
 
